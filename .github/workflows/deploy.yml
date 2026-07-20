@@ -23,9 +23,8 @@ jobs:
 
       - name: Log in to Docker Hub
         env:
-          DOCKER_USERNAME: pldn1k
           DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
-        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        run: echo "$DOCKER_PASSWORD" | docker login -u pldn1k --password-stdin
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
