@@ -8,11 +8,11 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: pldn1k/chatbot   
+  IMAGE_NAME: pldn1k/chatbot
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted   
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -48,22 +48,13 @@ jobs:
             org.opencontainers.image.source=${{ github.repositoryUrl }}
             org.opencontainers.image.revision=${{ github.sha }}
 
-      - name: Debug kubeconfig
+      - name: Force kubeconfig
         run: |
-          echo "KUBECONFIG path: $KUBECONFIG"
-          ls -la $KUBECONFIG || echo "File not found"
-          kubectl cluster-info || echo "kubectl failed"
-        env:
-          KUBECONFIG: /home/guest/.kube/config
-          
-      - name: Setup kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > ~/.kube/config
-          chmod 600 ~/.kube/config
+          mkdir -p /home/runner/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > /home/runner/.kube/config
+          chmod 600 /home/runner/.kube/config
+          export KUBECONFIG=/home/runner/.kube/config
           kubectl cluster-info
-        env:
-          KUBECONFIG: /home/guest/.kube/config
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
@@ -88,11 +79,11 @@ jobs:
             --set rabbitmq.enabled=false \
             --wait
         env:
-          KUBECONFIG: /home/guest/.kube/config
+          KUBECONFIG: /home/runner/.kube/config
 
       - name: Verify deployment
         run: |
           kubectl rollout status deployment/chatbot -n chatbot
           kubectl get pods -n chatbot
         env:
-          KUBECONFIG: /home/guest/.kube/config
+          KUBECONFIG: /home/runner/.kube/config
