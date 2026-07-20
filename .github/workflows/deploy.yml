@@ -55,6 +55,13 @@ jobs:
           kubectl cluster-info || echo "kubectl failed"
         env:
           KUBECONFIG: /home/guest/.kube/config
+          
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          kubectl cluster-info
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
