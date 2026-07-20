@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.log
+
+# Docker
+*.tar
+*.pack
+
+# Helm
+helm/chatbot/charts/
+helm/chatbot/Chart.lock
+*.tgz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Kubernetes
+kubeconfig.yaml
+*.kubeconfig
+
+# Temporary
+tmp/
+temp/
+ingress-nginx/

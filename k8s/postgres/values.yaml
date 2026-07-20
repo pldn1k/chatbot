@@ -1,0 +1,52 @@
+# PostgreSQL Values for Helm
+global:
+  postgresql:
+    auth:
+      postgresPassword: "postgres"
+      username: "chatbot_user"
+      password: "secure_password"
+      database: "chatbot"
+
+posgresql:      
+  primary:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+      
+    persistence:
+      enabled: false
+    
+    # Настройки производительности
+    configuration: |-
+      max_connections = 100
+      shared_buffers = 128MB
+      effective_cache_size = 384MB
+      maintenance_work_mem = 64MB
+      checkpoint_completion_target = 0.9
+      wal_buffers = 16MB
+      default_statistics_target = 100
+      random_page_cost = 1.1
+      effective_io_concurrency = 200
+      work_mem = 4MB
+      min_wal_size = 1GB
+      max_wal_size = 4GB
+      
+    service:
+      type: ClusterIP
+      port: 5432
+    
+    backup:
+      enabled: false
+    
+    networkPolicy:
+      enabled: false
+
+
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: false

@@ -1,0 +1,58 @@
+# Grafana Values
+adminUser: admin
+adminPassword: admin
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "200m"
+    
+persistence:
+  enabled: false
+  
+# Дашборды
+dashboardProviders: {}
+dashboards: {}
+      
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus.monitoring.svc:9090
+        access: proxy
+        isDefault: true
+        
+      - name: Loki
+        type: loki
+        url: http://loki.monitoring.svc:3100
+        access: proxy
+        
+      - name: Jaeger
+        type: jaeger
+        url: http://jaeger-query.monitoring.svc:16686
+        access: proxy
+        jsonData:
+          tracesToLogs:
+            datasourceUid: loki
+            tags: ['job', 'instance', 'pod']
+            
+      - name: PostgreSQL
+        type: postgres
+        url: postgres.chatbot.svc:5432
+        database: chatbot
+        user: chatbot_user
+        secureJsonData:
+          password: "secure_password"
+          
+# Ingress (используем port-forward, поэтому отключен)
+ingress:
+  enabled: false
+      
+# SMTP для уведомлений (отключен для локальной разработки)
+smtp:
+  enabled: false

@@ -1,0 +1,59 @@
+groups:
+  - name: redis_alerts
+    interval: 30s
+    rules:
+      # Redis недоступен
+      - alert: RedisDown
+        expr: redis_up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔴 Redis is down!"
+          description: "Redis instance {{ $labels.instance }} is unreachable for 1 minute"
+          runbook: "https://wiki.company.com/runbooks/redis-down"
+      
+      # Redis использует много памяти
+      - alert: RedisMemoryHigh
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "🧠 Redis memory usage high ({{ $value }}%)"
+          description: "Redis is using {{ $value }}% of max memory"
+      
+      # Redis достиг лимита памяти (будет вытеснять ключи)
+      - alert: RedisMemoryFragmentation
+        expr: redis_memory_fragmentation_ratio > 1.5
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "📊 Redis memory fragmentation ({{ $value }})"
+          description: "Memory fragmentation ratio is {{ $value }}, consider restarting"
+      
+      # Мало свободных соединений
+      - alert: RedisConnectionsHigh
+        expr: redis_connected_clients > 90
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "🔌 Redis connections high ({{ $value }})"
+          description: "{{ $value }} connections active, max is 100"
+      
+      # Много пропущенных ключей
+      - alert: RedisKeyEvictions
+        expr: rate(redis_evicted_keys_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "🗑️ Redis evicting keys ({{ $value }}/s)"
+          description: "Redis is evicting {{ $value }} keys per second, increase max memory"

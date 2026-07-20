@@ -1,0 +1,48 @@
+# RabbitMQ Values
+rabbitmq:
+  auth:
+    username: "guest"
+    password: "guest"
+    erlangCookie: "secure_erlang_cookie"
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+    
+  persistence:
+    enabled: false
+  
+  # Конфигурация очередей
+  extraConfiguration: |-
+    max_message_size = 134217728
+    vm_memory_high_watermark.absolute = 512MB # Настройка памяти
+    disk_free_limit.absolute = 1GB # Настройка диска
+  
+    # Таймауты
+    consumer_timeout = 30000
+    connection_max = 256
+  
+  # Плагины
+  plugins: |-
+    rabbitmq_management
+    rabbitmq_prometheus
+  
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+    
+  networkPolicy:
+    enabled: false
+  
+  service:
+    type: ClusterIP
+    ports:
+      amqp: 5672
+      management: 15672
+      prometheus: 15692
+  

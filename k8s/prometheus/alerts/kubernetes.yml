@@ -1,0 +1,91 @@
+groups:
+  - name: kubernetes_alerts
+    interval: 30s
+    rules:
+      # Нода не готова
+      - alert: NodeNotReady
+        expr: kube_node_status_ready == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "🖥️ Node {{ $labels.node }} is not ready"
+          description: "Node {{ $labels.node }} has been not ready for 5 minutes"
+      
+      # Мало памяти на ноде
+      - alert: NodeMemoryPressure
+        expr: kube_node_status_condition{condition="MemoryPressure"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "💾 Node memory pressure"
+          description: "Node {{ $labels.node }} has memory pressure"
+      
+      # Мало диска на ноде
+      - alert: NodeDiskPressure
+        expr: kube_node_status_condition{condition="DiskPressure"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "💿 Node disk pressure"
+          description: "Node {{ $labels.node }} has disk pressure"
+      
+      # Контейнер сломался
+      - alert: ContainerKilled
+        expr: kube_container_status_terminated > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "💀 Container killed"
+          description: "Container {{ $labels.container }} in pod {{ $labels.pod }} was killed"
+      
+      # Нет доступных нод для подов
+      - alert: NoAvailableNodes
+        expr: count(kube_node_status_ready == 1) < 2
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "❌ Less than 2 nodes available"
+          description: "Only {{ $value }} nodes are ready, cluster may be unstable"
+      
+      # PersistentVolume почти заполнен
+      - alert: PVFull
+        expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "📀 Persistent volume is full ({{ $value }}%)"
+          description: "Volume {{ $labels.persistentvolumeclaim }} is {{ $value }}% full"
+      
+      # Много подов в состоянии CrashLoopBackOff
+      - alert: ManyPodsCrashLooping
+        expr: count(kube_pod_container_status_restarts_total > 5) > 3
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "🔄 Many pods crash looping"
+          description: "{{ $value }} pods are crash looping"
+      
+      # Квота ресурсов превышена
+      - alert: ResourceQuotaExceeded
+        expr: kube_resourcequota_used > kube_resourcequota_hard
+        for: 1m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "📊 Resource quota exceeded"
+          description: "Resource quota {{ $labels.resourcequota }} has been exceeded"

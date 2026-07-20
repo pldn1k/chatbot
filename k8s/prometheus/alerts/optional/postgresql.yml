@@ -1,0 +1,70 @@
+groups:
+  - name: postgresql_alerts
+    interval: 30s
+    rules:
+      # БД недоступна
+      - alert: DatabaseDown
+        expr: pg_up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: dba
+        annotations:
+          summary: "🗄️ PostgreSQL is down!"
+          description: "Database instance {{ $labels.instance }} is unreachable for 1 minute"
+          runbook: "https://wiki.company.com/runbooks/database-down"
+      
+      # Слишком много подключений
+      - alert: PostgreSQLConnectionsHigh
+        expr: pg_stat_database_numbackends > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: dba
+        annotations:
+          summary: "🔌 Too many PostgreSQL connections ({{ $value }})"
+          description: "{{ $value }} connections active, limit is 100"
+      
+      # Репликация отстает
+      - alert: PostgreSQLReplicationLag
+        expr: pg_replication_lag > 60
+        for: 5m
+        labels:
+          severity: critical
+          team: dba
+        annotations:
+          summary: "⏰ PostgreSQL replication lag ({{ $value }}s)"
+          description: "Replication lag is {{ $value }} seconds, threshold is 60s"
+      
+      # Мало свободного места
+      - alert: PostgreSQLLowDiskSpace
+        expr: (pg_database_size_bytes / pg_database_total_size_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: dba
+        annotations:
+          summary: "💾 PostgreSQL low disk space ({{ $value }}%)"
+          description: "Database size is {{ $value }}% of total disk space"
+      
+      # Медленные запросы
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_database_xact_commit{datname="chatbot"}[5m]) < 10
+        for: 5m
+        labels:
+          severity: warning
+          team: dba
+        annotations:
+          summary: "🐢 Slow PostgreSQL queries"
+          description: "Less than 10 commits per second, performance may be degraded"
+      
+      # БД не отвечает на запросы
+      - alert: PostgreSQLNotResponding
+        expr: pg_stat_database_xact_commit < 1
+        for: 2m
+        labels:
+          severity: critical
+          team: dba
+        annotations:
+          summary: "❌ PostgreSQL not responding to queries"
+          description: "No commits detected for 2 minutes"

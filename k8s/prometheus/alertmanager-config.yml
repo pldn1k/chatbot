@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yml: |
+    # Глобальные настройки
+    global:
+      resolve_timeout: 5m
+      telegram_api_url: "https://api.telegram.org"
+      telegram_bot_token: "YOUR_BOT_TOKEN_HERE"
+
+    # Маршрутизация
+    route:
+      group_by: ['alertname', 'cluster']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: 'default'
+      routes:
+        # Критические алерты - сразу в телегу и на почту
+        - match:
+            severity: critical
+          receiver: 'critical_telegram'
+          continue: true
+
+        # Варнинги группируются и в Слак
+        - match:
+            severity: warning
+          receiver: 'warning_slack'
+          group_wait: 1m
+          group_interval: 10m
+          repeat_interval: 4h
+
+        # Алерты по БД - только DBA команде
+        - match:
+            team: dba
+          receiver: 'dba_telegram'
+          group_by: ['alertname', 'database']
+
+        # Алерты по платформе - DevOps команде
+        - match:
+            team: platform
+          receiver: 'platform_telegram'
+
+    # Получатели
+    receivers:
+      # Дефолтный получатель
+      - name: 'default'
+        telegram_configs:
+          - bot_token: "YOUR_BOT_TOKEN_HERE"
+            chat_id: YOUR_CHAT_ID
+            parse_mode: "HTML"
+            message: |
+              🔔 <b>ALERT</b>
+              {{ range .Alerts }}
+              {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+
+      # Критические алерты (отдельный чат)
+      - name: 'critical_telegram'
+        telegram_configs:
+          - bot_token: "YOUR_BOT_TOKEN_HERE"
+            chat_id: CRITICAL_CHAT_ID
+            parse_mode: "HTML"
+            disable_notifications: false
+            message: |
+              🚨 <b>CRITICAL ALERT</b>
+              {{ range .Alerts }}
+              🔥 {{ .Annotations.summary }}
+              📝 {{ .Annotations.description }}
+              🔗 <a href="{{ .Annotations.runbook }}">Runbook</a>
+              {{ end }}
+
+      # Варнинги в Слак
+      - name: 'warning_slack'
+        slack_configs:
+          - channel: '#alerts'
+            text: |
+              ⚠️ *WARNING*
+              {{ range .Alerts }}
+              {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+
+      # DBA команда
+      - name: 'dba_telegram'
+        telegram_configs:
+          - bot_token: "YOUR_BOT_TOKEN_HERE"
+            chat_id: DBA_CHAT_ID
+            parse_mode: "HTML"
+            message: |
+              🗄️ <b>DATABASE ALERT</b>
+              {{ range .Alerts }}
+              {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+
+      # Platform команда
+      - name: 'platform_telegram'
+        telegram_configs:
+          - bot_token: "YOUR_BOT_TOKEN_HERE"
+            chat_id: PLATFORM_CHAT_ID
+            parse_mode: "HTML"
+            message: |
+              🖥️ <b>PLATFORM ALERT</b>
+              {{ range .Alerts }}
+              {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+
+    # Подавление (ингибирование)
+    inhibit_rules:
+      # Если БД упала - не спамить о связанных ошибках
+      - source_match:
+          alertname: DatabaseDown
+          severity: critical
+        target_match_re:
+          alertname: ".*"
+          severity: "warning"
+        equal: ['instance']
+
+      # Если нода упала - подавить все алерты по подам на ней
+      - source_match:
+          alertname: NodeNotReady
+        target_match_re:
+          alertname: ".*Pod.*"
+        equal: ['node']

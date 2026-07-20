@@ -1,0 +1,59 @@
+groups:
+  - name: rabbitmq_alerts
+    interval: 30s
+    rules:
+      # RabbitMQ недоступен
+      - alert: RabbitMQDown
+        expr: rabbitmq_up{job="rabbitmq"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🐇 RabbitMQ is down!"
+          description: "RabbitMQ instance {{ $labels.instance }} is unreachable for 1 minute"
+          runbook: "https://wiki.company.com/runbooks/rabbitmq-down"
+      
+      # Очередь растет
+      - alert: QueueGrowing
+        expr: rabbitmq_queue_messages_ready > 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "📈 Queue is growing ({{ $value }} messages)"
+          description: "Queue {{ $labels.queue }} has {{ $value }} messages pending, check consumers"
+      
+      # Потребители отстают
+      - alert: QueueConsumersLagging
+        expr: rabbitmq_queue_messages_ready > rabbitmq_queue_messages_consumers * 10
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "🐌 Queue consumers lagging"
+          description: "Queue {{ $labels.queue }} has {{ $value }} messages, but only {{ $labels.consumers }} consumers"
+      
+      # Очередь переполнена (лимит)
+      - alert: QueueOverflow
+        expr: rabbitmq_queue_messages_ready > 5000
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔴 Queue overflow ({{ $value }} messages)"
+          description: "Queue {{ $labels.queue }} has {{ $value }} messages, immediate action required!"
+      
+      # Мало потребителей
+      - alert: RabbitMQNoConsumers
+        expr: rabbitmq_queue_consumers == 0
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "👤 No consumers for queue {{ $labels.queue }}"
+          description: "Queue has no consumers, messages will accumulate"

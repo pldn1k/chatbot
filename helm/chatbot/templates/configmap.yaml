@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chatbot.fullname" . }}-config
+  labels:
+    {{- include "chatbot.labels" . | nindent 4 }}
+data:
+  # Конфигурация приложения
+  APP_NAME: "chatbot"
+  ENVIRONMENT: {{ .Values.environment | default "production" | quote }}
+  LOG_LEVEL: {{ .Values.logLevel | default "INFO" | quote }}
+  
+  # Настройки БД
+  POSTGRES_HOST: {{ include "chatbot.postgresql-fullname" . | quote }}
+  POSTGRES_PORT: "5432"
+  POSTGRES_DATABASE: {{ .Values.postgresql.auth.database | quote }}
+  
+  # Настройки Редиса
+  REDIS_HOST: {{ include "chatbot.redis-fullname" . }}-master
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_CACHE_TTL: {{ .Values.redis.cacheTTL | default "3600" | quote }}
+  
+  # Настройки RabbitMQ
+  RABBITMQ_HOST: {{ include "chatbot.rabbitmq-fullname" . }}
+  RABBITMQ_PORT: "5673"
+  RABBITMQ_VHOST: "/"
+  RABBITMQ_QUEUE: "chat_queue"
+  RABBITMQ_EXCHANGE: "chat_exchange"
+  
+  # Настройки Jaeger
+  JAEGER_AGENT_HOST: {{ include "chatbot.jaeger-fullname" . }}
+  JAEGER_AGENT_PORT: "6831"
+  JAEGER_SAMPLER_TYPE: {{ .Values.jaeger.samplerType | default "const" | quote }}
+  JAEGER_SAMPLER_PARAM: {{ .Values.jaeger.samplerParam | default "1" | quote }}
+  
+  # Настройки алертов
+  ERROR_THRESHOLD: {{ .Values.alerting.errorThreshold | default "5" | quote }}
+  SLOW_REQUEST_THRESHOLD: {{ .Values.alerting.slowRequestThreshold | default "2" | quote }}
+  
+  # Дополнительные переменные
+  {{- if .Values.configMap.extraData }}
+  {{- toYaml .Values.configMap.extraData | nindent 2 }}
+  {{- end }}
+  
+# Configmap для логов. Можно менять уровень логирования без перезапуска
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chatbot.fullname" . }}-logging
+  labels:
+    {{- include "chatbot.labels" . | nindent 4 }}
+data:
+  log4j2.properties: |
+    appenders = console
+    appender.console.type = Console
+    appender.console.name = STDOUT
+    appender.console.layout.type = Patternlayout
+    appender.console.layout.pattern = %d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+    rootLogger.level = {{ .Values.logLevel | default "INFO" }}
+    rootLogger.appenderRefs = stdout
+    rootLogger.appenderRef.stdout.ref = STDOUT

@@ -1,0 +1,154 @@
+# Общие настройки
+replicaCount: 2
+
+image:
+  repository: chatbot
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.org/mergeable-ingress-type: "minion"
+  hosts:
+    - host: chatbot.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# ============================================
+# НАСТРОЙКИ LOGGING И CONFIGMAP
+# ============================================
+
+logLevel: INFO
+environment: production
+
+configMap:
+  extraData: {}
+
+# ============================================
+# ВСЕ СЕРВИСЫ через Helm зависимости
+# ============================================
+
+postgresql:
+  enabled: true
+  auth:
+    database: chatbot
+    username: chatbot_user
+    password: secure_password
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+  service:
+    ports:
+      postgresql: 5432
+
+redis:
+  enabled: true
+  auth:
+    password: redis_password
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+  service:
+    ports:
+      redis: 6379
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: guest
+    password: guest
+  persistence:
+    enabled: true
+    size: 5Gi
+  service:
+    ports:
+      amqp: 5672
+      management: 15672
+
+# ============================================
+# МОНИТОРИНГ (опционально)
+# ============================================
+
+jaeger:
+  enabled: false
+  agent:
+    enabled: true
+  storage:
+    type: memory
+
+loki:
+  enabled: false
+  persistence:
+    enabled: true
+    size: 10Gi
+
+promtail:
+  enabled: false
+
+grafana:
+  enabled: true
+  adminPassword: admin
+  persistence:
+    enabled: true
+    size: 5Gi
+
+prometheus:
+  enabled: false
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+# ============================================
+# БЕЗОПАСНОСТЬ
+# ============================================
+
+networkPolicy:
+  enabled: false
+
+# ============================================
+# НАСТРОЙКИ АЛЕРТОВ
+# ============================================
+
+alerting:
+  errorThreshold: 5
+  slowRequestThreshold: 2
+
+# ============================================
+# ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ (для безопасности)
+# ============================================
+
+auth: {}
+externalServices: {}
+existingSecret: ""
+
+metrics:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  serviceMonitor:
+    additionalLabels: {}
+    metricRelabelings: []
+    relabelings: []

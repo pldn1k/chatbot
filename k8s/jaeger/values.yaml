@@ -1,0 +1,57 @@
+# Jaeger Values
+provisionDataStore:
+  cassandra: false
+  elasticsearch: false
+  
+storage:
+  type: memory
+  # Для продакшена использовать Elascticsearch
+  
+agent:
+  enabled: true
+  strategy: DaemonSet
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+      
+collector:
+  enabled: true
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: 100m
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+      
+query:
+  enabled: true
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+      
+  service:
+    type: ClusterIP
+    port: 16686
+    
+ingress: # Отключен для локальной разработки
+  enabled: false
+      
+# Настройки выборки трейсов
+sampling:
+  strategies:
+    service_strategy:
+      - service: chatbot
+        type: probabilistic
+        param: 1.0
+      - service: default
+        type: probabilistic
+        param: 0.1

@@ -1,0 +1,49 @@
+apiVersion: v2
+name: chatbot
+description: Corporate Chatbot with full observability stack
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+#dependencies:
+  # Базы данных и очереди
+#  - name: postgresql
+#    version: "12.12.10"
+#    repository: "file://../postgresql"
+#    condition: postgresql.enabled
+  
+#  - name: redis
+#    version: 18.19.4
+#    repository: https://charts.bitnami.com/bitnami
+#    condition: redis.enabled
+  
+#  - name: rabbitmq
+#    version: 12.4.3
+#    repository: https://charts.bitnami.com/bitnami
+#    condition: rabbitmq.enabled
+  
+  # Мониторинг
+#  - name: loki
+#    version: 5.x.x
+#    repository: https://grafana.github.io/helm-charts
+#    condition: loki.enabled
+  
+#  - name: promtail
+#    version: 6.x.x
+#    repository: https://grafana.github.io/helm-charts
+#    condition: promtail.enabled
+  
+#  - name: grafana
+#    version: 7.x.x
+#    repository: https://grafana.github.io/helm-charts
+#    condition: grafana.enabled
+  
+#  - name: prometheus
+#    version: 25.x.x
+#    repository: https://prometheus-community.github.io/helm-charts
+#    condition: prometheus.enabled
+
+#  - name: jaeger
+#    version: 2.x.x
+#    repository: https://jaegertracing.github.io/helm-charts
+#    condition: jaeger.enabled

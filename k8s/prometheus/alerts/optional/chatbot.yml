@@ -1,0 +1,97 @@
+groups:
+  - name: chatbot_alerts
+    interval: 30s
+    rules:
+      # Сервис недоступен
+      - alert: ChatbotDown
+        expr: up{job="chatbot"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🚨 Chatbot service is down!"
+          description: "Chatbot pod {{ $labels.instance }} is not responding for 1 minute"
+          runbook: "https://wiki.company.com/runbooks/chatbot-down"
+      
+      # Высокий процент ошибок (5xx)
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{job="chatbot", status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{job="chatbot"}[5m]))
+          ) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "⚠️ High error rate ({{ $value | humanizePercentage }}%)"
+          description: "Error rate is {{ $value | humanizePercentage }}% for last 5 minutes"
+          runbook: "https://wiki.company.com/runbooks/high-error-rate"
+      
+      # Медленные запросы (p95 > 2 секунд)
+      - alert: SlowRequests
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket{job="chatbot"}[5m])) by (le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "🐢 Slow requests (>2s)"
+          description: "95th percentile response time is {{ $value }}s for last 5 minutes"
+          runbook: "https://wiki.company.com/runbooks/slow-requests"
+      
+      # Высокое потребление CPU
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="chatbot"}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "🔥 High CPU usage ({{ $value }}%)"
+          description: "CPU usage is {{ $value }}% for last 5 minutes"
+      
+      # Высокое потребление памяти
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes{job="chatbot"} / 512 * 1024 * 1024) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "💾 High memory usage ({{ $value }}%)"
+          description: "Memory usage is {{ $value }}% of limit"
+      
+      # Много рестартов подов
+      - alert: PodCrashLooping
+        expr: kube_pod_container_status_restarts_total{container="chatbot"} > 5
+        for: 15m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔄 Pod crash looping"
+          description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in 15 minutes"
+      
+      # Низкая скорость кэширования
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            sum(rate(redis_cache_hits_total{job="chatbot"}[5m]))
+            /
+            (sum(rate(redis_cache_hits_total{job="chatbot"}[5m])) + sum(rate(redis_cache_misses_total{job="chatbot"}[5m])))
+          ) * 100 < 50
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "📉 Low cache hit rate ({{ $value }}%)"
+          description: "Cache hit rate is {{ $value }}%, consider optimizing cache strategy"

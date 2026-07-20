@@ -1,0 +1,45 @@
+# Redis Values
+redis:
+  auth:
+    enabled: true
+    password: "redis_password"
+  
+  master:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+      
+    persistence:
+      enabled: false
+    
+    # Конфигурация Redis
+    configmap:
+      redis.conf: |-
+        maxmemory 256mb
+        maxmemory-policy allkeys-lru
+        save 900 1
+        save 300 10
+        save 60 10000
+        appendonly yes
+        appendfsync everysec
+        slowlog-log-slower-than 1000
+        slowlog-max-len 128
+      
+  replica:
+    enabled: false # Для простоты без них
+  
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+    
+  networkPolicy:
+    enabled: false
+  
+  service: 
+    type: ClusterIP
+    port: 6379
