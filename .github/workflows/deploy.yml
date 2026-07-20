@@ -62,6 +62,8 @@ jobs:
           echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
           kubectl cluster-info
+        env:
+          KUBECONFIG: /home/guest/.kube/config
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
