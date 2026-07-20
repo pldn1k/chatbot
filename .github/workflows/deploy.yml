@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Debug secret
         run: |
           if [ -n "${{ secrets.DOCKER_TOKEN }}" ]; then
@@ -31,7 +31,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
