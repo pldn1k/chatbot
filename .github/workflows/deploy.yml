@@ -56,6 +56,12 @@ jobs:
           export KUBECONFIG=/home/runner/.kube/config
           kubectl cluster-info
 
+      - name: Test kubectl
+        run: |
+          export KUBECONFIG=/home/runner/.kube/config
+          kubectl cluster-info
+          kubectl get nodes
+
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
         with:
@@ -77,13 +83,11 @@ jobs:
             --set postgresql.enabled=false \
             --set redis.enabled=false \
             --set rabbitmq.enabled=false \
+            --kubeconfig /home/runner/.kube/config \
             --wait
-        env:
-          KUBECONFIG: /home/runner/.kube/config
 
       - name: Verify deployment
         run: |
+          export KUBECONFIG=/home/runner/.kube/config
           kubectl rollout status deployment/chatbot -n chatbot
           kubectl get pods -n chatbot
-        env:
-          KUBECONFIG: /home/runner/.kube/config
