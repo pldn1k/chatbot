@@ -21,12 +21,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         
-        - name: Debug token
+        - name: Debug secret
           run: |
-            echo "Token length: ${#DOCKER_TOKEN}"
-            echo "Token first 4 chars: ${DOCKER_TOKEN:0:4}"
-          env:
-            DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+            if [ -n "${{ secrets.DOCKER_TOKEN }}" ]; then
+              echo "✅ DOCKER_TOKEN is set"
+            else
+              echo "❌ DOCKER_TOKEN is empty"
+            fi
 
       - name: Log in to Docker Hub
         run: docker login -u pldn1k -p "${{ secrets.DOCKER_TOKEN }}"
