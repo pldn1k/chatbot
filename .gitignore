@@ -35,3 +35,4 @@ kubeconfig.yaml
 tmp/
 temp/
 ingress-nginx/
+token.txt
