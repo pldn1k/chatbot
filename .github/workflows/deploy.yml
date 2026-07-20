@@ -22,8 +22,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        run: |
-          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u pldn1k --password-stdin
+        run: docker login -u pldn1k -p "${{ secrets.DOCKER_TOKEN }}"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
