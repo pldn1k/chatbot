@@ -58,13 +58,6 @@ jobs:
         uses: azure/setup-helm@v4
         with:
           version: 'latest'
-          
-      - name: Set up kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
       - name: Deploy to Kubernetes
         run: |
@@ -78,6 +71,8 @@ jobs:
             --set redis.enabled=false \
             --set rabbitmq.enabled=false \
             --wait
+        env:
+          KUBECONFIG: /home/guest/.kube/config
 
       - name: Verify deployment
         run: |
