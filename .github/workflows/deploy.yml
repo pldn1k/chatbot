@@ -92,4 +92,4 @@ jobs:
           kubectl rollout status deployment/chatbot -n chatbot
           kubectl get pods -n chatbot
           
-# Work now!
+# Work now! mothef*cker
