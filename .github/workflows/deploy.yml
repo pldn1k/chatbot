@@ -48,7 +48,7 @@ jobs:
             org.opencontainers.image.source=${{ github.repositoryUrl }}
             org.opencontainers.image.revision=${{ github.sha }}
 
-      - name: Force kubeconfig
+      - name: Setup kubeconfig
         run: |
           mkdir -p /home/runner/.kube
           echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > /home/runner/.kube/config
@@ -74,6 +74,7 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
+          export KUBECONFIG=/home/runner/.kube/config
           helm upgrade --install chatbot ./helm/chatbot \
             --namespace chatbot \
             --create-namespace \
@@ -83,7 +84,6 @@ jobs:
             --set postgresql.enabled=false \
             --set redis.enabled=false \
             --set rabbitmq.enabled=false \
-            --kubeconfig /home/runner/.kube/config \
             --wait
 
       - name: Verify deployment
