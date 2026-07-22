@@ -50,15 +50,15 @@ jobs:
 
       - name: Setup kubeconfig
         run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
-          export KUBECONFIG=$HOME/.kube/config
+          mkdir -p /home/guest/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > /home/guest/.kube/config
+          chmod 600 /home/guest/.kube/config
+          export KUBECONFIG=/home/guest/.kube/config
           kubectl cluster-info
 
       - name: Test kubectl
         run: |
-          export KUBECONFIG=$HOME/.kube/config
+          export KUBECONFIG=/home/guest/.kube/config
           kubectl cluster-info
           kubectl get nodes
 
@@ -74,7 +74,7 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
-          export KUBECONFIG=$HOME/.kube/config
+          export KUBECONFIG=/home/guest/.kube/config
           helm upgrade --install chatbot ./helm/chatbot \
             --namespace chatbot \
             --create-namespace \
@@ -88,6 +88,6 @@ jobs:
 
       - name: Verify deployment
         run: |
-          export KUBECONFIG=$HOME/.kube/config
+          export KUBECONFIG=/home/guest/.kube/config
           kubectl rollout status deployment/chatbot -n chatbot
           kubectl get pods -n chatbot
