@@ -91,3 +91,5 @@ jobs:
           export KUBECONFIG=/home/guest/.kube/config
           kubectl rollout status deployment/chatbot -n chatbot
           kubectl get pods -n chatbot
+          
+# Work now!
